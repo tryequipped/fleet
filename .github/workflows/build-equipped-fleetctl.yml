@@ -218,8 +218,10 @@ jobs:
         with:
           node-version-file: 'package.json'
 
-      - name: Install JS dependencies
-        run: make deps-js
+      - name: Install dependencies and generate assets
+        run: |
+          make deps-js
+          make generate
 
       - name: Build fleet server binary
         env:
