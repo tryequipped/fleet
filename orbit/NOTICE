@@ -1,0 +1,10 @@
+Equipped Agent
+
+This software is a derivative work based on Orbit by Fleet Device Management Inc.
+https://github.com/fleetdm/fleet/tree/main/orbit
+
+Orbit is licensed under the MIT License. The original copyright notice and license
+terms are preserved in the LICENSE file in this directory.
+
+Changes made by Equipped Ltd include rebranding of service identifiers, file paths,
+and packaging templates to distribute the agent under the "Equipped Agent" name.
