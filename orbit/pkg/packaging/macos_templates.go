@@ -24,11 +24,11 @@ var macosPackageInfoTemplate = template.Must(template.New("").Option("missingkey
 var macosDistributionTemplate = template.Must(template.New("").Option("missingkey=error").Parse(
 	`<?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
-	<title>Fleet osquery</title>
+	<title>Equipped Agent</title>
 	<choices-outline>
 	    <line choice="choiceBase"/>
     </choices-outline>
-    <choice id="choiceBase" title="Fleet osquery" enabled="false" selected="true" description="Standard installation for Fleet osquery.">
+    <choice id="choiceBase" title="Equipped Agent" enabled="false" selected="true" description="Standard installation for Equipped Agent.">
         <pkg-ref id="{{.Identifier}}.base.pkg"/>
     </choice>
     {{/* base.pkg specified here is the foldername that contains the package contents */}}
@@ -46,19 +46,19 @@ var macosDistributionTemplate = template.Must(template.New("").Option("missingke
 var macosPostinstallTemplate = template.Must(template.New("").Option("missingkey=error").Parse(
 	`#!/bin/bash
 
-ln -sf /opt/orbit/bin/orbit/macos/{{.OrbitChannel}}/orbit /opt/orbit/bin/orbit/orbit
-ln -sf /opt/orbit/bin/orbit/orbit /usr/local/bin/orbit
+ln -sf /opt/equipped/bin/orbit/macos/{{.OrbitChannel}}/orbit /opt/equipped/bin/orbit/orbit
+ln -sf /opt/equipped/bin/orbit/orbit /usr/local/bin/orbit
 {{ if .LegacyVarLibSymlink }}
 # Symlink needed to support old versions of orbit.
-ln -sf /opt/orbit /var/lib/orbit
+ln -sf /opt/equipped /var/lib/orbit
 {{- end }}
 
 {{ if .StartService -}}
-DAEMON_LABEL="com.fleetdm.orbit"
+DAEMON_LABEL="com.equipped.agent"
 DAEMON_PLIST="/Library/LaunchDaemons/${DAEMON_LABEL}.plist"
 
 # Stop the previous desktop agent
-pkill fleet-desktop || true
+pkill equipped-desktop || true
 # Remove any pre-existing version of the config
 launchctl bootout "system/${DAEMON_LABEL}"
 
@@ -110,11 +110,11 @@ var macosLaunchdTemplate = template.Must(template.New("").Option("missingkey=err
 		{{- end }}
 		{{- if .FleetCertificate }}
 		<key>ORBIT_FLEET_CERTIFICATE</key>
-		<string>/opt/orbit/fleet.pem</string>
+		<string>/opt/equipped/fleet.pem</string>
 		{{- end }}
 		{{- if .EnrollSecret }}
 		<key>ORBIT_ENROLL_SECRET_PATH</key>
-		<string>/opt/orbit/secret.txt</string>
+		<string>/opt/equipped/secret.txt</string>
 		{{- end }}
 		{{- if .FleetURL }}
 		<key>ORBIT_FLEET_URL</key>
@@ -140,7 +140,7 @@ var macosLaunchdTemplate = template.Must(template.New("").Option("missingkey=err
 		<string>{{ .UpdateURL }}</string>
 		{{- if .UpdateTLSServerCertificate }}
 		<key>ORBIT_UPDATE_TLS_CERTIFICATE</key>
-		<string>/opt/orbit/update.pem</string>
+		<string>/opt/equipped/update.pem</string>
 		{{- end }}
 		{{- if .Desktop }}
 		<key>ORBIT_FLEET_DESKTOP</key>
@@ -170,17 +170,17 @@ var macosLaunchdTemplate = template.Must(template.New("").Option("missingkey=err
 	<key>KeepAlive</key>
 	<true/>
 	<key>Label</key>
-	<string>com.fleetdm.orbit</string>
+	<string>com.equipped.agent</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/opt/orbit/bin/orbit/orbit</string>
+		<string>/opt/equipped/bin/orbit/orbit</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
-	<string>/var/log/orbit/orbit.stderr.log</string>
+	<string>/var/log/equipped/orbit.stderr.log</string>
 	<key>StandardOutPath</key>
-	<string>/var/log/orbit/orbit.stdout.log</string>
+	<string>/var/log/equipped/orbit.stdout.log</string>
 	<key>ThrottleInterval</key>
 	<integer>10</integer>
 </dict>

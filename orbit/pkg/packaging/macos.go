@@ -180,7 +180,7 @@ func BuildPkg(opt Options) (string, error) {
 	if opt.Notarize {
 		switch {
 		case isDarwin:
-			if err := NotarizeStaple(generatedPath, "com.fleetdm.orbit"); err != nil {
+			if err := NotarizeStaple(generatedPath, "com.equipped.agent"); err != nil {
 				return "", err
 			}
 		case isLinuxNative:
@@ -251,7 +251,7 @@ func writeScripts(opt Options, rootPath string) error {
 
 func writeLaunchd(opt Options, rootPath string) error {
 	// launchd is the service mechanism on macOS
-	path := filepath.Join(rootPath, "Library", "LaunchDaemons", "com.fleetdm.orbit.plist")
+	path := filepath.Join(rootPath, "Library", "LaunchDaemons", "com.equipped.agent.plist")
 	if err := secure.MkdirAll(filepath.Dir(path), constant.DefaultDirMode); err != nil {
 		return fmt.Errorf("mkdir: %w", err)
 	}

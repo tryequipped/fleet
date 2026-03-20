@@ -146,12 +146,12 @@ func (r *fileWatcher) DirExists() (bool, error) {
 }
 
 // Dir returns the path to the directory where the MDM migration file is stored. This path should be
-// ~/Library/Caches/com.fleetdm.orbit
+// ~/Library/Caches/com.equipped.agent
 func Dir() (string, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user's home directory: %w", err)
 	}
 
-	return filepath.Join(homedir, "Library/Caches/com.fleetdm.orbit"), nil
+	return filepath.Join(homedir, "Library/Caches/com.equipped.agent"), nil
 }
