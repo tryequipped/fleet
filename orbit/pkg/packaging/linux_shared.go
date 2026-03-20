@@ -26,12 +26,12 @@ import (
 // potentially leaving the host in an unreachable state.
 const postInstallSafeRestart = `
   if test -z "${INSTALLER_PATH:-}"; then
-    systemctl restart orbit.service 2>&1
+    systemctl restart equipped-agent.service 2>&1
   else
     echo "Detected in-band upgrade (orbit upgrading orbit). Delaying service"
     echo "restart to prevent orbit from being stopped mid-script."
     if command -v systemd-run >/dev/null 2>&1; then
-      systemd-run --on-active=60 --working-directory=/ systemctl restart --no-block orbit.service
+      systemd-run --on-active=60 --working-directory=/ systemctl restart --no-block equipped-agent.service
     else
       echo "...nevermind, systemd-run not available, exiting postinst"
       echo "without restarting."
@@ -51,7 +51,7 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 	if err := secure.MkdirAll(rootDir, constant.DefaultDirMode); err != nil {
 		return "", fmt.Errorf("create root dir: %w", err)
 	}
-	orbitRoot := filepath.Join(rootDir, "opt", "orbit")
+	orbitRoot := filepath.Join(rootDir, "opt", "equipped")
 	if err := secure.MkdirAll(orbitRoot, constant.DefaultDirMode); err != nil {
 		return "", fmt.Errorf("create orbit dir: %w", err)
 	}
@@ -187,10 +187,10 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 			Source:      filepath.Join(rootDir, "**"),
 			Destination: "/",
 		},
-		// Symlink current into /opt/orbit/bin/orbit/orbit
+		// Symlink current into /opt/equipped/bin/orbit/orbit
 		&files.Content{
-			Source:      "/opt/orbit/bin/orbit/" + updateOpt.Targets[constant.OrbitTUFTargetName].Platform + "/" + opt.OrbitChannel + "/orbit",
-			Destination: "/opt/orbit/bin/orbit/orbit",
+			Source:      "/opt/equipped/bin/orbit/" + updateOpt.Targets[constant.OrbitTUFTargetName].Platform + "/" + opt.OrbitChannel + "/orbit",
+			Destination: "/opt/equipped/bin/orbit/orbit",
 			Type:        "symlink",
 			FileInfo: &files.ContentFileInfo{
 				Mode: constant.DefaultExecutableMode | os.ModeSymlink,
@@ -198,8 +198,8 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 		},
 		// Symlink current into /usr/local/bin
 		&files.Content{
-			Source:      "/opt/orbit/bin/orbit/orbit",
-			Destination: "/usr/local/bin/orbit",
+			Source:      "/opt/equipped/bin/orbit/orbit",
+			Destination: "/usr/local/bin/equipped-agent",
 			Type:        "symlink",
 			FileInfo: &files.ContentFileInfo{
 				Mode: constant.DefaultExecutableMode | os.ModeSymlink,
@@ -208,7 +208,7 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 	}
 
 	// Add empty folders to be created.
-	for _, emptyFolder := range []string{"/var/log/osquery", "/var/log/orbit"} {
+	for _, emptyFolder := range []string{"/var/log/osquery", "/var/log/equipped"} {
 		contents = append(contents, (&files.Content{
 			Destination: emptyFolder,
 			Type:        "dir",
@@ -243,7 +243,7 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 
 	archLinuxInfo := nfpm.ArchLinux{}
 	if _, ok := pkger.(arch.ArchLinux); ok {
-		archLinuxInfo.Packager = "Fleet"
+		archLinuxInfo.Packager = "Equipped"
 		preUpgradePath := filepath.Join(tmpDir, "preupgrade.sh")
 		if err := writeArchLinuxPreUpgrade(preUpgradePath); err != nil {
 			return "", fmt.Errorf("write preupgrade script: %w", err)
@@ -254,14 +254,14 @@ func buildNFPM(opt Options, pkger nfpm.Packager) (string, error) {
 
 	// Build package
 	info := &nfpm.Info{
-		Name:        "fleet-osquery",
+		Name:        "equipped-agent",
 		Version:     opt.Version,
-		Description: "Fleet osquery -- runtime and autoupdater",
+		Description: "Equipped Agent -- device management agent powered by osquery",
 		Arch:        opt.Architecture,
-		Maintainer:  "Fleet Device Management",
-		Vendor:      "Fleet Device Management",
-		License:     "https://github.com/fleetdm/fleet/blob/main/LICENSE",
-		Homepage:    "https://fleetdm.com",
+		Maintainer:  "Equipped Inc.",
+		Vendor:      "Equipped Inc.",
+		License:     "https://github.com/tryequipped/fleet/blob/main/LICENSE",
+		Homepage:    "https://equipped.dev",
 		Overridables: nfpm.Overridables{
 			Contents: contents,
 			Scripts: nfpm.Scripts{
@@ -314,17 +314,17 @@ func writeSystemdUnit(opt Options, rootPath string) error {
 		return fmt.Errorf("create systemd dir: %w", err)
 	}
 	if err := os.WriteFile(
-		filepath.Join(systemdRoot, "orbit.service"),
+		filepath.Join(systemdRoot, "equipped-agent.service"),
 		[]byte(`
 [Unit]
-Description=Orbit osquery
+Description=Equipped Agent
 After=network.service syslog.service
 StartLimitIntervalSec=0
 
 [Service]
 TimeoutStartSec=0
-EnvironmentFile=/etc/default/orbit
-ExecStart=/opt/orbit/bin/orbit/orbit
+EnvironmentFile=/etc/default/equipped-agent
+ExecStart=/opt/equipped/bin/orbit/orbit
 Restart=always
 RestartSec=1
 KillMode=control-group
@@ -357,8 +357,8 @@ ORBIT_FLEET_DESKTOP_ALTERNATIVE_BROWSER_HOST={{ .FleetDesktopAlternativeBrowserH
 {{ if .Insecure }}ORBIT_INSECURE=true{{ end }}
 {{ if .DisableUpdates }}ORBIT_DISABLE_UPDATES=true{{ end }}
 {{ if .FleetURL }}ORBIT_FLEET_URL={{.FleetURL}}{{ end }}
-{{ if .FleetCertificate }}ORBIT_FLEET_CERTIFICATE=/opt/orbit/fleet.pem{{ end }}
-{{ if .UpdateTLSServerCertificate }}ORBIT_UPDATE_TLS_CERTIFICATE=/opt/orbit/update.pem{{ end }}
+{{ if .FleetCertificate }}ORBIT_FLEET_CERTIFICATE=/opt/equipped/fleet.pem{{ end }}
+{{ if .UpdateTLSServerCertificate }}ORBIT_UPDATE_TLS_CERTIFICATE=/opt/equipped/update.pem{{ end }}
 {{ if .EnrollSecret }}ORBIT_ENROLL_SECRET={{.EnrollSecret}}{{ end }}
 {{ if .Debug }}ORBIT_DEBUG=true{{ end }}
 {{ if .EnableScripts }}ORBIT_ENABLE_SCRIPTS=true{{ end }}
@@ -381,7 +381,7 @@ func writeEnvFile(opt Options, rootPath string) error {
 	}
 
 	if err := os.WriteFile(
-		filepath.Join(envRoot, "orbit"),
+		filepath.Join(envRoot, "equipped-agent"),
 		contents.Bytes(),
 		constant.DefaultFileMode,
 	); err != nil {
@@ -401,7 +401,7 @@ if command -v systemctl >/dev/null 2>&1; then
   systemctl daemon-reload >/dev/null 2>&1
 {{ if .StartService -}}
   ` + postInstallSafeRestart + `
-  systemctl enable orbit.service 2>&1
+  systemctl enable equipped-agent.service 2>&1
 {{- end}}
 fi
 `))
@@ -441,15 +441,15 @@ func writePreRemove(pkger nfpm.Packager, path string) error {
 	// https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#_syntax
 	// https://docs.fedoraproject.org/en-US/packaging-guidelines/Scriptlets/#ordering
 	//
-	// "pkill fleet-desktop" is required because the application
+	// "pkill equipped-desktop" is required because the application
 	// runs as user (separate from sudo command that launched it),
 	// so on some systems it's not killed properly.
 	preRemoveScript := `#!/bin/sh
 
 case "${1:-}" in
   1|remove|deconfigure)
-    systemctl disable --now orbit.service || true
-    pkill fleet-desktop || true
+    systemctl disable --now equipped-agent.service || true
+    pkill equipped-desktop || true
     ;;
   0|upgrade)
     ;;
@@ -461,8 +461,8 @@ esac
 	if isArchLinux {
 		preRemoveScript = `#!/bin/sh
 
-systemctl disable --now orbit.service || true
-pkill fleet-desktop || true
+systemctl disable --now equipped-agent.service || true
+pkill equipped-desktop || true
 
 `
 	}
@@ -479,7 +479,7 @@ func writePostRemove(path string) error {
 # For RPM during uninstall, $1 is 0
 # For Debian during remove, $1 is "remove"
 if [ "$1" = 0 ] || [ "$1" = "remove" ]; then
-	rm -rf /var/lib/orbit /var/log/orbit /usr/local/bin/orbit /etc/default/orbit /usr/lib/systemd/system/orbit.service /opt/orbit
+	rm -rf /var/lib/equipped /var/log/equipped /usr/local/bin/equipped-agent /etc/default/equipped-agent /usr/lib/systemd/system/equipped-agent.service /opt/equipped
 fi
 `), constant.DefaultFileMode); err != nil {
 		return fmt.Errorf("write file: %w", err)
@@ -500,7 +500,7 @@ var postTransTemplate = template.Must(template.New("posttrans").Parse(`#!/bin/sh
 # Exit on error
 set -e
 
-if ! systemctl is-enabled orbit >/dev/null 2>&1; then
+if ! systemctl is-enabled equipped-agent >/dev/null 2>&1; then
 	# If we have a systemd, daemon-reload away now
 	if command -v systemctl >/dev/null 2>&1; then
 		systemctl daemon-reload >/dev/null 2>&1
@@ -533,8 +533,8 @@ func writeArchLinuxPreUpgrade(path string) error {
 	// script might return non-zero exit code.
 	const preUpgradeScript = `#!/bin/sh
 
-systemctl disable --now orbit.service || true
-pkill fleet-desktop || true
+systemctl disable --now equipped-agent.service || true
+pkill equipped-desktop || true
 
 `
 	if err := os.WriteFile(path, []byte(preUpgradeScript), constant.DefaultFileMode); err != nil {

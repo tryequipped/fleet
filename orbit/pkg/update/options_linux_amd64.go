@@ -5,7 +5,7 @@ import (
 )
 
 var defaultOptions = Options{
-	RootDirectory:     "/opt/orbit",
+	RootDirectory:     "/opt/equipped",
 	ServerURL:         DefaultURL,
 	RootKeys:          defaultRootMetadata,
 	LocalStore:        client.MemoryLocalStore(),
