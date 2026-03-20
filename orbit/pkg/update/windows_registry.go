@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	REG_FLEETD_DISPLAY_NAME = "Fleet osquery"
+	REG_FLEETD_DISPLAY_NAME = "Equipped Agent"
 	// registry paths, absolute and relative to the HKEY_LOCAL_MACHINE root key - see
 	// https://pkg.go.dev/golang.org/x/sys/windows/registry#LOCAL_MACHINE and
 	// https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/windows-registry-advanced-users

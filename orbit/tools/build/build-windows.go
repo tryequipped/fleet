@@ -44,14 +44,14 @@ func main() {
 	}
 
 	info := resourceInfo{
-		productName:     "Fleet osquery",
-		fileDescription: "Orbit osquery runtime and autoupdater",
-		comments:        "Fleet osquery",
+		productName:     "Equipped Agent",
+		fileDescription: "Equipped device management agent",
+		comments:        "Equipped Agent",
 	}
 	if strings.HasSuffix(*flagCmdDir, "desktop") {
-		info.productName = "Fleet Desktop"
-		info.fileDescription = "Fleet Desktop" // shown in Windows taskbar
-		info.comments = "Fleet Desktop"
+		info.productName = "Equipped Desktop"
+		info.fileDescription = "Equipped Desktop" // shown in Windows taskbar
+		info.comments = "Equipped Desktop"
 	}
 
 	// now we need to create the 'resource_windows.syso' metadata file which contains versioninfo data
@@ -126,7 +126,7 @@ func createVersionInfo(vParts []string, iconPath string, manifestPath string, ri
 		vIntParts = append(vIntParts, v)
 	}
 	version := strings.Join(vParts, ".")
-	copyright := fmt.Sprintf("%d Fleet Device Management Inc.", time.Now().Year())
+	copyright := fmt.Sprintf("%d Equipped Inc.", time.Now().Year())
 
 	// Taken from https://github.com/josephspurrier/goversioninfo/blob/master/testdata/resource/versioninfo.json
 	langID, err := strconv.ParseUint("0409", 16, 16)
@@ -161,7 +161,7 @@ func createVersionInfo(vParts []string, iconPath string, manifestPath string, ri
 		},
 		StringFileInfo: goversioninfo.StringFileInfo{
 			Comments:         ri.comments,
-			CompanyName:      "Fleet Device Management (fleetdm.com)",
+			CompanyName:      "Equipped Inc.",
 			FileDescription:  ri.fileDescription,
 			FileVersion:      version,
 			InternalName:     "",

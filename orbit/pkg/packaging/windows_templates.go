@@ -9,7 +9,7 @@ var ManifestXMLTemplate = template.Must(template.New("").Option("missingkey=erro
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
   <assemblyIdentity
     type="win32"
-    name="Fleet osquery"
+    name="Equipped Agent"
     version="{{.Version}}"
     processorArchitecture="{{.Arch}}"
   />
@@ -31,15 +31,15 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product
     Id="*"
-    Name="Fleet osquery"
+    Name="Equipped Agent"
     Language="1033"
     Version="{{.Version}}"
-    Manufacturer="Fleet Device Management (fleetdm.com)"
+    Manufacturer="Equipped Inc."
     UpgradeCode="B681CB20-107E-428A-9B14-2D3C1AFED244" >
 
     <Package
-      Keywords='Fleet osquery'
-      Description="Fleet osquery"
+      Keywords='Equipped Agent'
+      Description="Equipped Agent"
       InstallerVersion="500"
       Compressed="yes"
       InstallScope="perMachine"
@@ -49,7 +49,7 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
     <Property Id="REINSTALLMODE" Value="amus" />
 
     <Property Id="APPLICATIONFOLDER">
-      <RegistrySearch Key="SOFTWARE\FleetDM\Orbit" Root="HKLM" Type="raw" Id="APPLICATIONFOLDER_REGSEARCH" Name="Path" />
+      <RegistrySearch Key="SOFTWARE\Equipped\Agent" Root="HKLM" Type="raw" Id="APPLICATIONFOLDER_REGSEARCH" Name="Path" />
     </Property>
 
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />
@@ -81,7 +81,7 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder">
-        <Directory Id="ORBITROOT" Name="Orbit">
+        <Directory Id="ORBITROOT" Name="Equipped">
           <Component Id="C_ORBITROOT" Guid="A7DFD09E-2D2B-4535-A04F-5D4DE90F3863">
             <CreateFolder>
               <PermissionEx Sddl="O:SYG:SYD:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;0x1200a9;;;BU)" />
@@ -103,13 +103,13 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
                   ##############################################################################################
                   -->
                 <ServiceInstall
-                  Name="Fleet osquery"
+                  Name="Equipped Agent"
                   Account="LocalSystem"
                   ErrorControl="ignore"
                   Start="auto"
                   Type="ownProcess"
-                  Description="This service runs Fleet's osquery runtime and autoupdater (Orbit)."
-                  Arguments='--root-dir "[ORBITROOT]." --log-file "[System64Folder]config\systemprofile\AppData\Local\FleetDM\Orbit\Logs\orbit-osquery.log" --fleet-url "[FLEET_URL]"{{ if .FleetCertificate }} --fleet-certificate "[ORBITROOT]fleet.pem"{{ end }}{{ if .EnrollSecret }} --enroll-secret-path "[ORBITROOT]secret.txt"{{ end }}{{if .Insecure }} --insecure{{ end }}{{ if .Debug }} --debug{{ end }}{{ if .UpdateURL }} --update-url "{{ .UpdateURL }}"{{ end }}{{ if .UpdateTLSServerCertificate }} --update-tls-certificate "[ORBITROOT]update.pem"{{ end }}{{ if .DisableUpdates }} --disable-updates{{ end }} --fleet-desktop="[FLEET_DESKTOP]" --desktop-channel {{ .DesktopChannel }}{{ if .FleetDesktopAlternativeBrowserHost }} --fleet-desktop-alternative-browser-host {{ .FleetDesktopAlternativeBrowserHost }}{{ end }} --orbit-channel "{{ .OrbitChannel }}" --osqueryd-channel "{{ .OsquerydChannel }}" --enable-scripts="[ENABLE_SCRIPTS]" {{ if and (ne .HostIdentifier "") (ne .HostIdentifier "uuid") }}--host-identifier={{ .HostIdentifier }}{{ end }}{{ $endUserEmailArg }}{{ if .OsqueryDB }} --osquery-db="{{ .OsqueryDB }}"{{ end }}{{ if .DisableSetupExperience }} --disable-setup-experience{{ end }}'
+                  Description="Equipped device management agent powered by osquery."
+                  Arguments='--root-dir "[ORBITROOT]." --log-file "[System64Folder]config\systemprofile\AppData\Local\Equipped\Agent\Logs\equipped-agent.log" --fleet-url "[FLEET_URL]"{{ if .FleetCertificate }} --fleet-certificate "[ORBITROOT]fleet.pem"{{ end }}{{ if .EnrollSecret }} --enroll-secret-path "[ORBITROOT]secret.txt"{{ end }}{{if .Insecure }} --insecure{{ end }}{{ if .Debug }} --debug{{ end }}{{ if .UpdateURL }} --update-url "{{ .UpdateURL }}"{{ end }}{{ if .UpdateTLSServerCertificate }} --update-tls-certificate "[ORBITROOT]update.pem"{{ end }}{{ if .DisableUpdates }} --disable-updates{{ end }} --fleet-desktop="[FLEET_DESKTOP]" --desktop-channel {{ .DesktopChannel }}{{ if .FleetDesktopAlternativeBrowserHost }} --fleet-desktop-alternative-browser-host {{ .FleetDesktopAlternativeBrowserHost }}{{ end }} --orbit-channel "{{ .OrbitChannel }}" --osqueryd-channel "{{ .OsquerydChannel }}" --enable-scripts="[ENABLE_SCRIPTS]" {{ if and (ne .HostIdentifier "") (ne .HostIdentifier "uuid") }}--host-identifier={{ .HostIdentifier }}{{ end }}{{ $endUserEmailArg }}{{ if .OsqueryDB }} --osquery-db="{{ .OsqueryDB }}"{{ end }}{{ if .DisableSetupExperience }} --disable-setup-experience{{ end }}'
                 >
                   <util:ServiceConfig
                     FirstFailureActionType="restart"
@@ -121,7 +121,7 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
                 </ServiceInstall>
                 <ServiceControl
                   Id="StartOrbitService"
-                  Name="Fleet osquery"
+                  Name="Equipped Agent"
                   Start="install"
                   Stop="both"
                   Remove="uninstall"
@@ -184,7 +184,7 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
    <SetProperty Id="CA_RemoveRebootPending"
                  Before ="CA_RemoveRebootPending"
                  Sequence="execute"
-                 Value='&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass Remove-Item -Path "$Env:Programfiles\orbit\bin" -Recurse -Force' />
+                 Value='&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass Remove-Item -Path "$Env:Programfiles\Equipped\bin" -Recurse -Force' />
 
     <CustomAction Id="CA_RemoveRebootPending"
                   BinaryKey="WixCA"
@@ -201,7 +201,7 @@ var windowsWixTemplate = template.Must(template.New("").Option("missingkey=error
       <Custom Action="CA_RemoveRebootPending" Before='InstallFiles'>NOT Installed</Custom> <!-- It removes reboot pending Orbit files -->
     </InstallExecuteSequence>
 
-    <Feature Id="Orbit" Title="Fleet osquery" Level="1" Display="hidden">
+    <Feature Id="Orbit" Title="Equipped Agent" Level="1" Display="hidden">
       <ComponentGroupRef Id="OrbitFiles" />
       <ComponentRef Id="C_ORBITBIN" />
       <ComponentRef Id="C_ORBITROOT" />
@@ -216,7 +216,7 @@ var windowsOsqueryEventLogTemplate = template.Must(template.New("").Option("miss
 <instrumentationManifest xsi:schemaLocation="http://schemas.microsoft.com/win/2004/08/events eventman.xsd" xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:trace="http://schemas.microsoft.com/win/2004/08/events/trace">
 	<instrumentation>
 		<events>
-			<provider name="FleetDM" guid="{F7740E18-3259-434F-9759-976319968900}" symbol="OsqueryWindowsEventLogProvider" resourceFileName="%systemdrive%\Program Files\Orbit\bin\osqueryd\windows\{{ .OsquerydChannel }}\osqueryd.exe" messageFileName="%systemdrive%\Program Files\Orbit\bin\osqueryd\windows\{{ .OsquerydChannel }}\osqueryd.exe">
+			<provider name="Equipped" guid="{F7740E18-3259-434F-9759-976319968900}" symbol="OsqueryWindowsEventLogProvider" resourceFileName="%systemdrive%\Program Files\Equipped\bin\osqueryd\windows\{{ .OsquerydChannel }}\osqueryd.exe" messageFileName="%systemdrive%\Program Files\Equipped\bin\osqueryd\windows\{{ .OsquerydChannel }}\osqueryd.exe">
 				<events>
 					<event symbol="DebugMessage" value="1" version="0" channel="osquery" level="win:Warning" task="LogMessage" opcode="MessageOpcode" template="_template_message" keywords="DebugWindowsEventLogMessage " message="$(string.osquery.event.1.message)"></event>
 					<event symbol="InfoMessage" value="2" version="0" channel="osquery" level="win:Informational" task="LogMessage" opcode="MessageOpcode" template="_template_message" keywords="InfoWindowsEventLogMessage " message="$(string.osquery.event.2.message)"></event>
@@ -533,13 +533,13 @@ function Stop-Osquery {
 function Stop-Orbit {
 
   # Stop Service
-  Stop-Service -Name "Fleet osquery" -ErrorAction "Continue"
+  Stop-Service -Name "Equipped Agent" -ErrorAction "Continue"
   Start-Sleep -Milliseconds 1000
 
   # Ensure that no process left running
   Get-Process -Name "orbit" -ErrorAction "SilentlyContinue" | Stop-Process -Force
   Get-Process -Name "osqueryd" -ErrorAction "SilentlyContinue" | Stop-Process -Force
-  Get-Process -Name "fleet-desktop" -ErrorAction "SilentlyContinue" | Stop-Process -Force
+  Get-Process -Name "equipped-desktop" -ErrorAction "SilentlyContinue" | Stop-Process -Force
   Start-Sleep -Milliseconds 1000
 }
 
@@ -550,7 +550,7 @@ function Update-OrbitSecret {
   if (-not ([string]::IsNullOrEmpty($updateSecret)) -and ($updateSecret -ne "dummy"))
   {
     Write-Host "Updating secret"
-    $targetSecretFile = $Env:Programfiles + "\\Orbit\\secret.txt"
+    $targetSecretFile = $Env:Programfiles + "\\Equipped\\secret.txt"
     Set-Content -NoNewline -Path $targetSecretFile -Value $updateSecret
 
     Start-Sleep -Milliseconds 1000
@@ -567,20 +567,20 @@ function Force-Remove-Orbit {
     Stop-Orbit
 
     #Remove Service
-    $service = Get-WmiObject -Class Win32_Service -Filter "Name='Fleet osquery'"
+    $service = Get-WmiObject -Class Win32_Service -Filter "Name='Equipped Agent'"
     if ($service) {
       $service.delete() | Out-Null
     }
 
     #Removing Program files entries
-    $targetPath = $Env:Programfiles + "\\Orbit"
+    $targetPath = $Env:Programfiles + "\\Equipped"
     Remove-Item -LiteralPath $targetPath -Force -Recurse -ErrorAction "Continue"
 
     #Remove HKLM registry entries
     Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" -Recurse  -ErrorAction "SilentlyContinue" |  Where-Object {($_.ValueCount -gt 0)} | ForEach-Object {
 
       # Filter for osquery entries
-      $properties = Get-ItemProperty -LiteralPath $_.PSPath  -ErrorAction "SilentlyContinue" |  Where-Object {($_.DisplayName -eq "Fleet osquery")}
+      $properties = Get-ItemProperty -LiteralPath $_.PSPath  -ErrorAction "SilentlyContinue" |  Where-Object {($_.DisplayName -eq "Equipped Agent")}
       if ($properties) {
 
         #Remove Registry Entries
@@ -662,7 +662,7 @@ function Graceful-Product-Uninstall($productName) {
       return $false
     }
 
-    if ($productName -eq "Fleet osquery") {
+    if ($productName -eq "Equipped Agent") {
       Stop-Orbit
     } elseif ($productName -eq "osquery") {
       Stop-Osquery
@@ -761,7 +761,7 @@ function Main {
     } elseif ($uninstallOrbit) {
       Write-Host "About to uninstall Orbit." -foregroundcolor Yellow
 
-      #if (Graceful-Product-Uninstall("Fleet osquery")) {
+      #if (Graceful-Product-Uninstall("Equipped Agent")) {
       if ($false) {
         Force-Remove-Orbit #best effort action to ensure cleanup after graceful uninstall
         Write-Host "Orbit was gracefully uninstalled." -foregroundcolor Cyan

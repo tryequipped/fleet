@@ -348,7 +348,7 @@ func createVersionInfo(vParts []string, manifestPath string) (*goversioninfo.Ver
 		vIntParts = append(vIntParts, v)
 	}
 	version := strings.Join(vParts, ".")
-	copyright := fmt.Sprintf("%d Fleet Device Management Inc.", time.Now().Year())
+	copyright := fmt.Sprintf("%d Equipped Inc.", time.Now().Year())
 
 	// Taken from https://github.com/josephspurrier/goversioninfo/blob/master/testdata/resource/versioninfo.json
 	langID, err := strconv.ParseUint("0409", 16, 16)
@@ -382,16 +382,16 @@ func createVersionInfo(vParts []string, manifestPath string) (*goversioninfo.Ver
 			FileSubType:   "00",
 		},
 		StringFileInfo: goversioninfo.StringFileInfo{
-			Comments:         "Fleet osquery",
-			CompanyName:      "Fleet Device Management (fleetdm.com)",
-			FileDescription:  "Fleet osquery installer",
+			Comments:         "Equipped Agent",
+			CompanyName:      "Equipped Inc.",
+			FileDescription:  "Equipped Agent installer",
 			FileVersion:      version,
 			InternalName:     "",
 			LegalCopyright:   copyright,
 			LegalTrademarks:  "",
 			OriginalFilename: "",
 			PrivateBuild:     "",
-			ProductName:      "Fleet osquery",
+			ProductName:      "Equipped Agent",
 			ProductVersion:   version,
 			SpecialBuild:     "",
 		},

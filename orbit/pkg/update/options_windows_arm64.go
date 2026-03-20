@@ -8,7 +8,7 @@ import (
 )
 
 var defaultOptions = Options{
-	RootDirectory:     `C:\Program Files\Orbit`,
+	RootDirectory:     `C:\Program Files\Equipped`,
 	ServerURL:         DefaultURL,
 	RootKeys:          defaultRootMetadata,
 	LocalStore:        client.MemoryLocalStore(),
@@ -19,6 +19,6 @@ var defaultOptions = Options{
 func init() {
 	// Set root directory to value of ProgramFiles environment variable if not set
 	if dir := os.Getenv("ProgramFiles"); dir != "" {
-		DefaultOptions.RootDirectory = filepath.Join(dir, "Orbit")
+		DefaultOptions.RootDirectory = filepath.Join(dir, "Equipped")
 	}
 }
