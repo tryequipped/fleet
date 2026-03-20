@@ -17,7 +17,7 @@ import (
 	"unsafe"
 )
 
-const service = "com.fleetdm.fleetd.enroll.secret"
+const service = "com.equipped.agent.enroll.secret"
 
 var serviceStringRef = stringToCFString(service)
 var mu sync.Mutex

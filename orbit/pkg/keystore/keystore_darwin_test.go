@@ -24,7 +24,7 @@ func TestSecret(t *testing.T) {
 
 	// Use a different service name for testing
 	origServiceStringRef := serviceStringRef
-	serviceStringRef = stringToCFString("com.fleetdm.fleetd.enroll.secret.test")
+	serviceStringRef = stringToCFString("com.equipped.agent.enroll.secret.test")
 
 	t.Cleanup(
 		func() {
