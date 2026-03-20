@@ -1,9 +1,7 @@
-name: Build Equipped fleetctl + orbit
+name: Build Equipped fleetctl + agent + packages
 
-# Builds fleetctl and the equipped-agent (orbit) binary from the Equipped fork.
-# fleetctl is used by equipped-mdm to generate installer packages.
-# The orbit binary is injected into the package to replace the stock one,
-# so the installed agent reports Equipped branding and version.
+# Builds fleetctl, the equipped-agent (orbit) binary, and installer
+# packages (.pkg for macOS) from the Equipped fork.
 
 on:
   push:
@@ -14,6 +12,7 @@ on:
       - 'cmd/fleetctl/**'
       - 'server/**'
       - 'orbit/**'
+      - 'pkg/**'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/build-equipped-fleetctl.yml'
@@ -84,34 +83,120 @@ jobs:
           path: equipped-agent-${{ matrix.suffix }}
           retention-days: 90
 
-  release:
+  # Build macOS .pkg installer on a macOS runner (requires pkgbuild/productbuild)
+  package-macos:
     needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Download fleetctl for macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: fleetctl-darwin_arm64
+
+      - name: Build .pkg
+        run: |
+          chmod +x fleetctl-darwin_arm64
+
+          # Build .pkg with rebranded packaging templates.
+          # Fleet URL placeholder — real URL injected via MDM config profile at runtime.
+          # Enroll secret placeholder — real secret injected via MDM config profile at runtime.
+          ./fleetctl-darwin_arm64 package \
+            --type=pkg \
+            --fleet-url=https://fleet.placeholder.equipped.dev \
+            --enroll-secret=ENROLL_SECRET_FROM_MDM_PROFILE \
+            --disable-updates \
+            --fleet-desktop=false \
+            --outfile=fleetd-base.pkg
+
+          ls -la fleetd-base.pkg
+          PKG_SHA256=$(shasum -a 256 fleetd-base.pkg | cut -d' ' -f1)
+          echo "PKG_SHA256=${PKG_SHA256}" >> "$GITHUB_ENV"
+          echo "Package SHA256: ${PKG_SHA256}"
+
+      - name: Generate manifest plist
+        run: |
+          # The manifest plist tells macOS where to download the .pkg.
+          # EQUIPPED_DOWNLOAD_URL is set per-environment in equipped-mdm.
+          # This manifest uses a relative path that works with any base URL.
+          cat > fleetd-base-manifest.plist << 'MANIFEST_EOF'
+          <plist version="1.0">
+            <dict>
+              <key>items</key>
+              <array>
+                <dict>
+                  <key>assets</key>
+                  <array>
+                    <dict>
+                      <key>kind</key>
+                      <string>software-package</string>
+                      <key>url</key>
+                      <string>EQUIPPED_PKG_URL_PLACEHOLDER</string>
+                    </dict>
+                  </array>
+                </dict>
+              </array>
+            </dict>
+          </plist>
+          MANIFEST_EOF
+
+      - name: Upload .pkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fleetd-base-pkg
+          path: |
+            fleetd-base.pkg
+            fleetd-base-manifest.plist
+          retention-days: 90
+
+  release:
+    needs: [build, package-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts/
 
-      - name: Package binaries
+      - name: Package binaries and installers
         run: |
           mkdir -p dist
+
+          # Package fleetctl and orbit binaries
           for dir in artifacts/fleetctl-* artifacts/equipped-agent-*; do
+            [ -d "$dir" ] || continue
             name=$(basename "$dir")
             cp "$dir/$name" "dist/$name"
             chmod +x "dist/$name"
             tar czf "dist/${name}.tar.gz" -C dist "$name"
           done
+
+          # Copy .pkg and manifest (not compressed — served as-is)
+          if [ -d "artifacts/fleetd-base-pkg" ]; then
+            cp artifacts/fleetd-base-pkg/fleetd-base.pkg dist/
+            cp artifacts/fleetd-base-pkg/fleetd-base-manifest.plist dist/
+          fi
+
           ls -la dist/
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: fleetctl-equipped-latest
-          name: "Equipped fleetctl + agent (latest)"
+          name: "Equipped fleetctl + agent + packages (latest)"
           body: |
-            Pre-built binaries from the Equipped fork.
+            Pre-built binaries and packages from the Equipped fork.
             - fleetctl: generates rebranded installer packages
-            - equipped-agent: the rebranded orbit binary (replaces stock in packages)
+            - equipped-agent: the rebranded orbit binary
+            - fleetd-base.pkg: macOS installer package (rebranded)
+            - fleetd-base-manifest.plist: manifest for MDM InstallEnterpriseApplication
           prerelease: true
-          files: dist/*.tar.gz
+          files: |
+            dist/*.tar.gz
+            dist/fleetd-base.pkg
+            dist/fleetd-base-manifest.plist
           make_latest: false
