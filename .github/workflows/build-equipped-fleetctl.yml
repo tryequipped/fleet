@@ -1,10 +1,9 @@
-name: Build Equipped fleetctl
+name: Build Equipped fleetctl + orbit
 
-# Builds the fleetctl binary from the Equipped fork for use by
-# equipped-mdm's deploy pipeline to generate rebranded agent packages.
-#
-# The equipped-mdm server downloads the pre-built binary from this
-# workflow's release artifacts — no Go needed on the server.
+# Builds fleetctl and the equipped-agent (orbit) binary from the Equipped fork.
+# fleetctl is used by equipped-mdm to generate installer packages.
+# The orbit binary is injected into the package to replace the stock one,
+# so the installed agent reports Equipped branding and version.
 
 on:
   push:
@@ -14,7 +13,7 @@ on:
     paths:
       - 'cmd/fleetctl/**'
       - 'server/**'
-      - 'orbit/pkg/packaging/**'
+      - 'orbit/**'
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/build-equipped-fleetctl.yml'
@@ -59,11 +58,30 @@ jobs:
             -ldflags "-X github.com/fleetdm/fleet/v4/server/version.appName=fleetctl-equipped -X github.com/fleetdm/fleet/v4/server/version.version=${VERSION}" \
             ./cmd/fleetctl/
 
-      - name: Upload artifact
+      - name: Build equipped-agent (orbit)
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+          ARTIFACT_SUFFIX: ${{ matrix.suffix }}
+        run: |
+          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+          go build -o "equipped-agent-${ARTIFACT_SUFFIX}" \
+            -ldflags "-X github.com/fleetdm/fleet/v4/orbit/pkg/build.Version=${VERSION}" \
+            ./orbit/cmd/orbit/
+
+      - name: Upload fleetctl artifact
         uses: actions/upload-artifact@v4
         with:
           name: fleetctl-${{ matrix.suffix }}
           path: fleetctl-${{ matrix.suffix }}
+          retention-days: 90
+
+      - name: Upload equipped-agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: equipped-agent-${{ matrix.suffix }}
+          path: equipped-agent-${{ matrix.suffix }}
           retention-days: 90
 
   release:
@@ -77,7 +95,7 @@ jobs:
       - name: Package binaries
         run: |
           mkdir -p dist
-          for dir in artifacts/fleetctl-*; do
+          for dir in artifacts/fleetctl-* artifacts/equipped-agent-*; do
             name=$(basename "$dir")
             cp "$dir/$name" "dist/$name"
             chmod +x "dist/$name"
@@ -86,15 +104,14 @@ jobs:
           ls -la dist/
 
       - name: Create or update release
-        env:
-          COMMIT_SHA: ${{ github.sha }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: fleetctl-equipped-latest
-          name: "Equipped fleetctl (latest)"
+          name: "Equipped fleetctl + agent (latest)"
           body: |
-            Pre-built fleetctl binary from the Equipped fork.
-            Used by equipped-mdm to generate rebranded agent packages.
+            Pre-built binaries from the Equipped fork.
+            - fleetctl: generates rebranded installer packages
+            - equipped-agent: the rebranded orbit binary (replaces stock in packages)
           prerelease: true
           files: dist/*.tar.gz
           make_latest: false
