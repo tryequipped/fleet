@@ -9,6 +9,7 @@ name: Build Equipped fleetctl
 on:
   push:
     branches:
+      - main
       - equipped-agent-rebrand
     paths:
       - 'cmd/fleetctl/**'
@@ -16,6 +17,7 @@ on:
       - 'orbit/pkg/packaging/**'
       - 'go.mod'
       - 'go.sum'
+      - '.github/workflows/build-equipped-fleetctl.yml'
   workflow_dispatch:
 
 permissions:
