@@ -2,5 +2,5 @@
 
 notarize {
   path = "./dist/orbit-macos_darwin_all.zip"
-  bundle_id = "com.fleetdm.orbit"
+  bundle_id = "com.equipped.agent"
 }

@@ -1,6 +1,6 @@
 version: 2
 
-project_name: orbit
+project_name: equipped-agent
 
 #################################################################################################
 # If this is updated make sure to update the "How to build from source" section in the README.md.
