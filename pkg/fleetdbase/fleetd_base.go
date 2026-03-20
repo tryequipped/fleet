@@ -1,4 +1,6 @@
-// pacakge fleetdbase contains functions to interact with downloads.fleetdm.com
+// package fleetdbase contains functions to interact with the fleetd base
+// package download server. By default this is download.fleetdm.com, but
+// Equipped overrides it via FLEET_FLEETD_BASE_URL to serve rebranded packages.
 package fleetdbase
 
 import (
@@ -6,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/fleetdm/fleet/v4/server/dev_mode"
 )
@@ -20,6 +23,12 @@ type Metadata struct {
 }
 
 func getBaseURL() string {
+	// FLEET_FLEETD_BASE_URL allows overriding the download server URL
+	// in production (not gated behind dev_mode). Used by Equipped to
+	// serve rebranded agent packages from its own infrastructure.
+	if baseURL := os.Getenv("FLEET_FLEETD_BASE_URL"); baseURL != "" {
+		return baseURL
+	}
 	devURL := dev_mode.Env("FLEET_DEV_DOWNLOAD_FLEETDM_URL")
 	if devURL != "" {
 		return devURL
