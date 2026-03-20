@@ -86,8 +86,8 @@ const (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "Orbit osquery"
-	app.Usage = "A powered-up, (near) drop-in replacement for osquery"
+	app.Name = "Equipped Agent"
+	app.Usage = "Equipped device management agent powered by osquery"
 	app.Commands = []*cli.Command{
 		versionCommand,
 		shellCommand,

@@ -12,11 +12,11 @@ const (
 	DefaultWorldReadableFileMode = 0o644
 	// DefaultSystemdUnitMode is the required file mode to systemd unit files.
 	DefaultSystemdUnitMode = DefaultWorldReadableFileMode
-	// DesktopAppExecName is the name of Fleet's Desktop executable.
+	// DesktopAppExecName is the name of Equipped's Desktop executable.
 	//
-	// We use fleet-desktop as name to properly identify the process when listing
+	// We use equipped-desktop as name to properly identify the process when listing
 	// running processes/tasks.
-	DesktopAppExecName = "fleet-desktop"
+	DesktopAppExecName = "equipped-desktop"
 	// DesktopTokenFileName is the filename on disk (in the orbit base dir) where we store the Fleet Desktop auth token
 	DesktopTokenFileName = "identifier"
 	// OrbitNodeKeyFileName is the filename on disk where we write the orbit node key to
@@ -35,9 +35,9 @@ const (
 	// OsqueryEnrollSecretFileName is the filename on disk where we write
 	// the orbit enroll secret.
 	OsqueryEnrollSecretFileName = "secret.txt"
-	// SystemServiceName is the name of Orbit system service
+	// SystemServiceName is the name of the Equipped Agent system service
 	// The service name is used by the OS service management framework
-	SystemServiceName = "Fleet osquery"
+	SystemServiceName = "Equipped Agent"
 	// FleetTLSClientCertificateFileName is the name of the TLS client certificate file
 	// used when connecting to the Fleet server.
 	FleetTLSClientCertificateFileName = "fleet_client.crt"
@@ -50,8 +50,8 @@ const (
 	// UpdateTLSClientKeyFileName is the name of the TLS client private key file
 	// used when connecting to the update server.
 	UpdateTLSClientKeyFileName = "update_client.key"
-	// SilenceEnrollLogErrorEnvVer is an environment variable name for disabling enroll log errors
-	SilenceEnrollLogErrorEnvVar = "FLEETD_SILENCE_ENROLL_ERROR"
+	// SilenceEnrollLogErrorEnvVar is an environment variable name for disabling enroll log errors
+	SilenceEnrollLogErrorEnvVar = "EQUIPPED_SILENCE_ENROLL_ERROR"
 	// ServerOverridesFileName is the name of the file in the root directory
 	// that specifies the override configuration fetched from the server.
 	ServerOverridesFileName = "server-overrides.json"
