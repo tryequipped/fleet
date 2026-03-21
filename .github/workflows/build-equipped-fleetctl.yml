@@ -243,6 +243,6 @@ jobs:
         run: |
           cp fleet tools/fleet-docker/
           cd tools/fleet-docker
-          docker build -t tryequipped/fleet-server:latest .
-          docker push tryequipped/fleet-server:latest
-          echo "Pushed tryequipped/fleet-server:latest"
+          docker build -t equipped/fleet:latest .
+          docker push equipped/fleet:latest
+          echo "Pushed equipped/fleet:latest"
